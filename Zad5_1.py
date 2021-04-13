@@ -3,7 +3,7 @@ import numpy as np
 import generator as gen
 import math
 
-n=10
+n=5
 
 m = Model(name='test')
 
@@ -25,24 +25,25 @@ point =[]
 for i in range(0,n+2):
     point.append([m.continuous_var(name='point{0}{1}'.format(i,j)) for j in range(0,2)])
 
-order = []
-for i in range(0,n+2):
-    order.append([m.integer_var(name='order{0}'.format(i))])
-
-
-m.add_constraint(point[0][j] for j in range(0, 2) == p[j])
-m.add_constraint(point[n+1][j] for j in range(0, 2) == p[j])
-m.add_constraint(order[0] == 0)
-m.add_constraint(order[n+1] == n+1)
+m.add_constraint(point[0][0] == x0)
+m.add_constraint(point[0][1] == y0)
+m.add_constraint(point[n+1][0] == x0)
+m.add_constraint(point[n+1][1] == y0)
 
 for i in range(1, n+1):
-    m.add_constraint(point[i-1][0]  <= a[i-1]+r[i-1])
-    m.add_constraint(point[i-1][0]  >= a[i-1]-r[i-1])
-    m.add_constraint((point[i-1][1]  == sqrt(r[i-1]*r[i-1]-a[i-1]*a[i-1]) + b[i-1]) or (point[i-1][1]  == -sqrt(r[i-1]*r[i-1]-a[i-1]*a[i-1]) + b[i-1]))
+    m.add_constraint(point[i][0]  <= a[i-1]+r[i-1])
+    m.add_constraint(point[i][0]  >= a[i-1]-r[i-1])
+    m.add_constraint(point[i][1]  <= b[i-1]+r[i-1])
+    m.add_constraint(point[i][1]  >= b[i-1]-r[i-1])
+    #m.add_constraint(point[i][1]  <= math.sqrt(r[i-1]**2-(point[i][0]-a[i-1])**2)+b[i-1]))
+    #m.add_constraint(point[i][1]  >= -1*math.sqrt(r[i-1]**2-(point[i][0]-a[i-1])**2)+b[i-1])
+    #m.add_constraint(math.sqrt((point[i][0]-a[i-1])**2+(point[i][1]-b[i-1])**2) <= r[i-1])
+    m.add_constraint(m.abs(point[i][0]-a[i-1])+m.abs(point[i][1]-b[i-1]) <= r[i-1])
 
 #for i in range(1, n+1):
 
-m.minimize(m.sum(sqrt(pow((x[order[i]][0]-x[order[i+1]][0],2)+(x[order[i]][1]-x[order[i+1]][1])**2)) for i in range(0,n))
+#m.minimize(m.sum(math.sqrt((point[i-1][0]-point[i][0])**2+(point[i-1][1]-point[i][1])**2)) for i in range(1,n))
+m.minimize(m.sum(m.abs(point[i-1][0]-point[i][0]) + m.abs(point[i-1][1]-point[i][1])) for i in range(1,n+2))
 
 m.solve()
 m.print_solution()

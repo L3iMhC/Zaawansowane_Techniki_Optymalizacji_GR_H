@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>43e63ebc-4543-488f-ba33-bfc760ed7d35</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Zad2_1.py</StartupFile>
+    <StartupFile>Zad5_1.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -45,6 +45,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Zad5_1.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Zad5_1_test.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
