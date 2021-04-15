@@ -22,28 +22,33 @@ y0 = generator.nextFloat(5,35)
 p0 = [x0, y0]
 
 point =[]
-for i in range(0,n+2):
+for i in range(0,n):
     point.append([m.continuous_var(name='point{0}{1}'.format(i,j)) for j in range(0,2)])
 
-m.add_constraint(point[0][0] == x0)
-m.add_constraint(point[0][1] == y0)
-m.add_constraint(point[n+1][0] == x0)
-m.add_constraint(point[n+1][1] == y0)
+#m.add_constraint(point[0][0] == x0)
+#m.add_constraint(point[0][1] == y0)
+#m.add_constraint(point[n+1][0] == x0)
+#m.add_constraint(point[n+1][1] == y0)
 
-for i in range(1, n+1):
-    m.add_constraint(point[i][0]  <= a[i-1]+r[i-1])
-    m.add_constraint(point[i][0]  >= a[i-1]-r[i-1])
-    m.add_constraint(point[i][1]  <= b[i-1]+r[i-1])
-    m.add_constraint(point[i][1]  >= b[i-1]-r[i-1])
+m.minimize(m.sum(m.abs(point[i-1][0]-point[i][0]) + m.abs(point[i-1][1]-point[i][1]) for i in range(1,n)))
+
+for i in range(0, n):
+    m.add_constraint(point[i][0]  <= a[i]+r[i])
+    m.add_constraint(point[i][0]  >= a[i]-r[i])
+    m.add_constraint(point[i][1]  <= b[i]+r[i])
+    m.add_constraint(point[i][1]  >= b[i]-r[i])
     #m.add_constraint(point[i][1]  <= math.sqrt(r[i-1]**2-(point[i][0]-a[i-1])**2)+b[i-1]))
     #m.add_constraint(point[i][1]  >= -1*math.sqrt(r[i-1]**2-(point[i][0]-a[i-1])**2)+b[i-1])
     #m.add_constraint(math.sqrt((point[i][0]-a[i-1])**2+(point[i][1]-b[i-1])**2) <= r[i-1])
-    m.add_constraint(m.abs(point[i][0]-a[i-1])+m.abs(point[i][1]-b[i-1]) <= r[i-1])
+    m.add_constraint(m.abs(point[i][0]-a[i])+m.abs(point[i][1]-b[i]) <= r[i])
 
 #for i in range(1, n+1):
 
 #m.minimize(m.sum(math.sqrt((point[i-1][0]-point[i][0])**2+(point[i-1][1]-point[i][1])**2)) for i in range(1,n))
-m.minimize(m.sum(m.abs(point[i-1][0]-point[i][0]) + m.abs(point[i-1][1]-point[i][1])) for i in range(1,n+2))
+
+
+
+#x += m.abs(x0-point[0][0]) + m.abs(y0-point[0][1]) + m.abs(x0-point[n-1][0]) + m.abs(y0-point[n-1][1])
 
 m.solve()
 m.print_solution()
