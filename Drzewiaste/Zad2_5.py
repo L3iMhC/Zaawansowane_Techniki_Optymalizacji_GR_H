@@ -3,8 +3,8 @@ import numpy as np
 
 moduleName = '../CPLEX/generator'
 
-n = 50
-Z = 586
+n = 3
+Z = 4124
 generator = gen.RandomNumberGenerator(Z)
 
 X = []
@@ -28,6 +28,9 @@ def szukajRozwiazania(X, PWybrane, wybor, poziom, biezacyNajlepszy):
     sumaWag = sumujWagi(X)
     print("Poziom: ", poziom, " Wybór: ", wybor,  " Podzbior: ", X,
           " PWybrane: ", PWybrane, " Suma wag: ", sumaWag)
+    if(sumaWag == B):
+        print(sumujWartość(X))
+        return sumujWartość(X)
     if(sumaWag > B):
         return biezacyNajlepszy
     if(poziom == n):
@@ -36,7 +39,7 @@ def szukajRozwiazania(X, PWybrane, wybor, poziom, biezacyNajlepszy):
     for i in range(0, n):
         if(PWybrane[i] == False):
             nowe = szukajRozwiazania(
-                X, PWybrane, i, poziom+1, biezacyNajlepszy)
+                X[:], PWybrane[:], i, poziom+1, biezacyNajlepszy)
             if(biezacyNajlepszy < nowe):
                 biezacyNajlepszy = nowe
     return biezacyNajlepszy
