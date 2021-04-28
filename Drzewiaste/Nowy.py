@@ -1,23 +1,9 @@
 import generator as gen
 import numpy as np
-import random
+import datetime
+from matplotlib import pyplot as plt
 
 moduleName = '../CPLEX/generator'
-
-n = 5
-Z = 4124
-generator = gen.RandomNumberGenerator(Z)
-
-X = []
-PoczatkoweWybrane = []
-
-C = np.zeros(n)
-W = np.zeros(n)
-B = generator.nextInt(5*n, 10*n)
-for i in range(0, n):
-    C[i] = generator.nextInt(1, 30)
-    W[i] = generator.nextInt(1, 30)
-    PoczatkoweWybrane.append(False)
 
 
 class itemWiC:
@@ -45,44 +31,10 @@ class galaz:
         self.poziom = poziom
         self.zyskDoTejGalezi = zyskDoTejGalezi
         self.UB = UB
-        self.LB = LB
         self.wagaDoTejGalezi = wagaDoTejGalezi
-        self.wybrany = Wybrany
-
-    def __lt__(self, other):
-        return self.LB > other.LB
 
     def __repr__(self):
         return ("\nPoziom: "+str(self.poziom)+" Zysk do tej gałęzi: "+str(self.zyskDoTejGalezi)+" Waga do tej gałęzi: "+str(self.wagaDoTejGalezi)+" UB: "+str(self.UB)+" LB: "+str(self.LB)+" Wybrany: "+str(self.wybrany))
-
-
-def losoweRozwPoczatkowe():
-    Xp = []
-    Pp = []
-    for i in range(0, n):
-        Pp.append(i)
-
-    while Pp:
-        wylosowany = random.choice(Pp)
-        Xp.append(wylosowany)
-        Pp.remove(wylosowany)
-        if(sumujWagi(Xp) > B):
-            Xp.remove(Xp[-1])
-            return (Xp, sumujWartość(Xp))
-
-
-def sumujWagi(X):
-    sum = 0
-    for x in X:
-        sum = sum+W[x]
-    return sum
-
-
-def sumujWartość(X):
-    sum = 0
-    for x in X:
-        sum = sum + C[x]
-    return sum
 
 
 def liczUB(galaz, itemsWiC):
@@ -102,8 +54,16 @@ def liczUB(galaz, itemsWiC):
     return UB
 
 
+def RozwiazBF(B, n):
+    if n == 0 or B == 0:
+        return 0
+    if(W[n-1] > B):
+        return RozwiazBF(B, n-1)
+    else:
+        return max(C[n-1] + RozwiazBF(B-W[n-1], n-1), RozwiazBF(B, n-1))
+
+
 def RozwiazBB():
-    (Xp, LB) = losoweRozwPoczatkowe()
     nowag = obecnag = galaz(0, 0, 0, 0, False, 0)
     Q = []
     Q.append(galaz(-1, 0, 0, 0, False, 0))
@@ -142,8 +102,42 @@ def RozwiazBB():
     return maksymalnyZysk
 
 
-print("C:", C)
-print("W:", W)
-print("B:", B)
+BF = []
+BB = []
 
-print(RozwiazBB())
+wielkoscInstancji = 20
+for i in range(0, wielkoscInstancji):
+    n = i
+    Z = 4124
+    generator = gen.RandomNumberGenerator(Z)
+
+    X = []
+    PoczatkoweWybrane = []
+
+    C = np.zeros(n)
+    W = np.zeros(n)
+    B = generator.nextInt(5*n, 10*n)
+    for i in range(0, n):
+        C[i] = generator.nextInt(1, 30)
+        W[i] = generator.nextInt(1, 30)
+        PoczatkoweWybrane.append(False)
+
+    print("C:", C)
+    print("W:", W)
+    print("B:", B)
+    start = datetime.datetime.now()
+    BB.append(RozwiazBB())
+    duration = datetime.datetime.now() - start
+    start = datetime.datetime.now()
+    BF.append(RozwiazBF(B, n))
+    duration = datetime.datetime.now() - start
+
+x = np.arange(0, wielkoscInstancji)
+print(BB)
+plt.title("Czas maksymalizacji problemu plecakowego algorytmu B&B w porównaniu do Brute Force w zależności od liczby zmiennych")
+plt.xlabel("Liczba zmiennych")
+plt.ylabel("Czas rozwiązywania")
+plt.plot(x, BB, "o", label="B&B")
+plt.plot(x, BF, "o", label="Brute Force")
+plt.legend()
+plt.show()
