@@ -1,5 +1,6 @@
 import generator as gen
 import numpy as np
+import random
 
 moduleName = '../CPLEX/generator'
 
@@ -21,31 +22,47 @@ for i in range(0, n):
 # BRUTE FORCE
 
 
-def szukajRozwiazania(X, PWybrane, wybor, poziom, biezacyNajlepszy, limitGlebokosci=0):
+def szukajRozwiazania(X, PWybrane, wybor, poziom, biezacyNajlepszy, najlepszaPermutacja, limitGlebokosci=0):
 
     PWybrane[wybor] = True
     X.append(wybor)
     sumaWag = sumujWagi(X)
-
     if(sumaWag == B):
-        print("Suma wag rowna wadze ograniczajacej z suma wartosci: ", sumujWartość(X))
-        return sumujWartość(X)
+        #print("Suma wag rowna wadze ograniczajacej z suma wartosci: ", sumujWartość(X))
+        return (X, sumujWartość(X))
     if(sumaWag > B):
         #PWybrane[wybor] = False
         # X.remove(wybor)
-        return biezacyNajlepszy
+        return (najlepszaPermutacja, biezacyNajlepszy)
     if(poziom == n):
-        return sumujWartość(X)
+        return (X, sumujWartość(X))
     biezacyNajlepszy = sumujWartość(X)
-    print("Poziom: ", poziom, " Wybór: ", wybor,  " Podzbior: ", X,
-          " PWybrane: ", PWybrane, " Suma wag: ", sumaWag, " Bieżący najlepszy: ", biezacyNajlepszy)
+    najlepszaPermutacja = X
+    # print("Poziom: ", poziom, " Wybór: ", wybor,  " Podzbior: ", X,
+    #      " PWybrane: ", PWybrane, " Suma wag: ", sumaWag, " Bieżący najlepszy: ", biezacyNajlepszy)
     for k in range(0, n):
         if(PWybrane[k] == False):
-            nowe = szukajRozwiazania(
-                X[:], PWybrane[:], k, poziom+1, biezacyNajlepszy)
+            (nowaPermutacja, nowe) = szukajRozwiazania(
+                X[:], PWybrane[:], k, poziom+1, biezacyNajlepszy, najlepszaPermutacja)
             if(biezacyNajlepszy < nowe):
                 biezacyNajlepszy = nowe
-    return biezacyNajlepszy
+                najlepszaPermutacja = nowaPermutacja
+    return (najlepszaPermutacja, biezacyNajlepszy)
+
+
+def losoweRozwPoczatkowe():
+    Xp = []
+    Pp = []
+    for i in range(0, n):
+        Pp.append(i)
+
+    while Pp:
+        wylosowany = random.choice(Pp)
+        Xp.append(wylosowany)
+        Pp.remove(wylosowany)
+        if(sumujWagi(Xp) > B):
+            Xp.remove(Xp[-1])
+            return (Xp, sumujWartość(Xp))
 
 
 X = []
@@ -85,14 +102,19 @@ print("B:", B)
 
 
 najlepszy = 0
+najlepszaPermutacja = []
 
+(permutacjaLosowa, LB) = losoweRozwPoczatkowe()
+print("LB: ", LB, " Dla: ", permutacjaLosowa)
 for i in range(0, n):
     X = []
     #PoczatkoweWybrane[i] = False
     for j in range(0, n):
         PoczatkoweWybrane[j] = False
-    nowy = szukajRozwiazania(X[:], PoczatkoweWybrane[:], i, 0, 0)
+    (nowaPermutacja, nowy) = szukajRozwiazania(
+        X[:], PoczatkoweWybrane[:], i, 0, 0, [])
     if(nowy > najlepszy):
         najlepszy = nowy
+        najlepszaPermutacja = nowaPermutacja
 
-print(" Z maksimum: ", najlepszy)
+print("Najlepsza permutacja: ", najlepszaPermutacja, " Z maksimum: ", najlepszy)
