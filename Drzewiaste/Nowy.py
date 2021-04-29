@@ -23,7 +23,7 @@ class itemWiC:
         return ("Waga: ", self.waga, " Wartosc: ", self.wartosc, " ID: ", self.id)
 
     def __repr__(self):
-        return ("\nWaga: " + str(self.waga) + " Wartosc: " + str(self.wartosc) + " ID: "+str(self.id))
+        return ("\nWaga: " + str(self.waga) + " Wartosc: " + str(self.wartosc) + " ID: "+str(self.id)+" Koszt: "+str(self.koszt))
 
 
 class galaz:
@@ -63,7 +63,7 @@ def RozwiazBF(B, n):
         return max(C[n-1] + RozwiazBF(B-W[n-1], n-1), RozwiazBF(B, n-1))
 
 
-def RozwiazBB():
+def RozwiazBB(zSortowaniem):
     nowag = obecnag = galaz(0, 0, 0, 0, False, 0)
     Q = []
     Q.append(galaz(-1, 0, 0, 0, False, 0))
@@ -73,6 +73,9 @@ def RozwiazBB():
     for i in range(0, n):
         X.append(False)
         itemsWiC.append(itemWiC(W[i], C[i], i))
+    if(zSortowaniem):
+        itemsWiC.sort(reverse=False)
+    print(itemsWiC)
     while len(Q) != 0:
         obecnag = Q.pop()
         if(obecnag.poziom == -1):
@@ -103,9 +106,11 @@ def RozwiazBB():
 
 
 BF = []
-BB = []
+BBzSortowaniem = []
+BBbezSortowania = []
 
-wielkoscInstancji = 20
+
+wielkoscInstancji = 25
 for i in range(0, wielkoscInstancji):
     n = i
     Z = 4124
@@ -126,18 +131,21 @@ for i in range(0, wielkoscInstancji):
     print("W:", W)
     print("B:", B)
     start = datetime.datetime.now()
-    BB.append(RozwiazBB())
+    BBbezSortowania.append(RozwiazBB(False))
+    duration = datetime.datetime.now() - start
+    start = datetime.datetime.now()
+    BBzSortowaniem.append(RozwiazBB(True))
     duration = datetime.datetime.now() - start
     start = datetime.datetime.now()
     BF.append(RozwiazBF(B, n))
     duration = datetime.datetime.now() - start
 
 x = np.arange(0, wielkoscInstancji)
-print(BB)
 plt.title("Czas maksymalizacji problemu plecakowego algorytmu B&B w porównaniu do Brute Force w zależności od liczby zmiennych")
 plt.xlabel("Liczba zmiennych")
 plt.ylabel("Czas rozwiązywania")
-plt.plot(x, BB, "o", label="B&B")
+plt.plot(x, BBbezSortowania, "o", label="B&B bez sortowania")
+plt.plot(x, BBzSortowaniem, "o", label="B&B z sortowaniem")
 plt.plot(x, BF, "o", label="Brute Force")
 plt.legend()
 plt.show()
