@@ -6,7 +6,7 @@ import math
 moduleName = '../CPLEX/generator'
 
 
-n = 50
+n = 20
 Z = 4124
 generator = gen.RandomNumberGenerator(Z)
 
@@ -18,14 +18,14 @@ S = 0
 InitialQueue = np.zeros(n, dtype='int32')
 
 
-def RandomSearch(queue):
+def RandomSearch(queue, printMidPointValues=False):
 
     temp = queue
     BestLatency = WeightedLatency(queue)
     iterations = 0
-
-    print('\n\n\n\nInitial queue: ', queue,
-          '\nInitial latency: ', WeightedLatency(queue), '\n',)
+    if(printMidPointValues):
+        print('\n\n\n\nInitial queue: ', queue,
+              '\nInitial latency: ', WeightedLatency(queue), '\n',)
 
     while(iterations < 1000):
 
@@ -41,8 +41,9 @@ def RandomSearch(queue):
             iterations = 0
             BestLatency = CurrentLatency
             BestQueue = temp.copy()
-            print('\nCurrent Best Queue: ', BestQueue,
-                  '\nCurrent Best Latency: ', BestLatency, '\n',)
+            if(printMidPointValues):
+                print('\nCurrent Best Queue: ', BestQueue,
+                      '\nCurrent Best Latency: ', BestLatency, '\n',)
         else:
             temp[i1], temp[i2] = temp[i2], temp[i1]
             iterations = iterations + 1
@@ -54,17 +55,17 @@ def acceptance(x1, x2, t):
     return math.e**(-(x1-x2)/t)
 
 
-def SimulatedAnnealing(queue):
+def SimulatedAnnealing(queue, initialTemperature=1000, printMidPointValues=False):
 
     temp = queue
     BestLatency = WeightedLatency(queue)
     iterations = 0
 
-    tmp = 1000
+    tmp = initialTemperature
     a = 0.995
-
-    print('\n\n\n\nInitial queue: ', queue,
-          '\nInitial value: ', WeightedLatency(queue), '\n',)
+    if(printMidPointValues):
+        print('\n\n\n\nInitial queue: ', queue,
+              '\nInitial value: ', WeightedLatency(queue), '\n',)
 
     while(iterations < 10000):
 
@@ -81,8 +82,9 @@ def SimulatedAnnealing(queue):
             iterations = 0
             BestLatency = CurrentValue
             BestQueue = temp.copy()
-            print('\nCurrent Best queue: ', BestQueue,
-                  '\nCurrent Best value: ', BestLatency, '\n',)
+            if(printMidPointValues):
+                print('\nCurrent Best queue: ', BestQueue,
+                      '\nCurrent Best value: ', BestLatency, '\n',)
         elif(random.random() < acceptance(PreviousValue, CurrentValue, tmp)):
             iterations = 0
         else:
@@ -92,6 +94,20 @@ def SimulatedAnnealing(queue):
         tmp = a*tmp
 
     return BestQueue, BestLatency
+
+
+def FindInitialTemperature(initialQueue):
+    for i in range(0, 1000):
+        Lowest = 999999999999999
+        Highest = 0
+        np.random.shuffle(initialQueue)
+        # print(initialQueue)
+        current = WeightedLatency(initialQueue)
+        if current < Lowest:
+            Lowest = current
+        if current > Highest:
+            Highest = current
+    return abs(Highest-Lowest)
 
 
 for i in range(0, n):
@@ -118,7 +134,7 @@ def WeightedLatency(queue):
 
 InitialLatency = WeightedLatency(InitialQueue.copy())
 
-print('Initial Path: ', InitialQueue, '\nInitial Distance: ', InitialLatency)
+print('Initial queue: ', InitialQueue, '\nInitial latency: ', InitialLatency)
 
 RandomSearchBestQueue, RandomSearchBestLatency = RandomSearch(
     InitialQueue.copy())
@@ -126,8 +142,12 @@ RandomSearchBestQueue, RandomSearchBestLatency = RandomSearch(
 print('\n\n\n\n(RS)Final queue: ', RandomSearchBestQueue,
       '\n(RS)Final latency: ', RandomSearchBestLatency)
 
+initTemp = FindInitialTemperature(InitialQueue.copy())
+if(initTemp == 0):
+    initTemp = 100
+print(initTemp)
 SimulatedAnnealingBestQueue, SimulatedAnnealingBestLatency = SimulatedAnnealing(
-    queue=InitialQueue.copy())
+    queue=InitialQueue.copy(), initialTemperature=initTemp)
 
 print('\n\n\n\n(SA)Final queue: ', SimulatedAnnealingBestQueue,
       '\n(SA)Final latency: ', SimulatedAnnealingBestLatency)
