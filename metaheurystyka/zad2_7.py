@@ -6,7 +6,7 @@ import math
 moduleName = '../CPLEX/generator'
 
 
-n = 5
+n = 50
 Z = 4124
 generator = gen.RandomNumberGenerator(Z)
 
@@ -18,14 +18,14 @@ S = 0
 InitialQueue = np.zeros(n, dtype='int32')
 
 
-def RandomSearch(path):
+def RandomSearch(queue):
 
-    temp = path
-    BestDistance = WeightedLatency(path)
+    temp = queue
+    BestLatency = WeightedLatency(queue)
     iterations = 0
 
-    print('\n\n\n\nInitial Path: ', path,
-          '\nInitial Distance: ', WeightedLatency(path), '\n',)
+    print('\n\n\n\nInitial queue: ', queue,
+          '\nInitial latency: ', WeightedLatency(queue), '\n',)
 
     while(iterations < 1000):
 
@@ -35,19 +35,63 @@ def RandomSearch(path):
             i2 = random.randint(0, n-1)
 
         temp[i1], temp[i2] = temp[i2], temp[i1]
-        CurrentDistance = WeightedLatency(temp)
+        CurrentLatency = WeightedLatency(temp)
 
-        if(CurrentDistance < BestDistance):
+        if(CurrentLatency < BestLatency):
             iterations = 0
-            BestDistance = CurrentDistance
-            BestPath = temp.copy()
-            print('\nCurrent Best Path: ', BestPath,
-                  '\nCurrent Best Distance: ', BestDistance, '\n',)
+            BestLatency = CurrentLatency
+            BestQueue = temp.copy()
+            print('\nCurrent Best Queue: ', BestQueue,
+                  '\nCurrent Best Latency: ', BestLatency, '\n',)
         else:
             temp[i1], temp[i2] = temp[i2], temp[i1]
             iterations = iterations + 1
 
-    return BestPath, BestDistance
+    return BestQueue, BestLatency
+
+
+def acceptance(x1, x2, t):
+    return math.e**(-(x1-x2)/t)
+
+
+def SimulatedAnnealing(queue):
+
+    temp = queue
+    BestLatency = WeightedLatency(queue)
+    iterations = 0
+
+    tmp = 1000
+    a = 0.995
+
+    print('\n\n\n\nInitial queue: ', queue,
+          '\nInitial value: ', WeightedLatency(queue), '\n',)
+
+    while(iterations < 10000):
+
+        i1 = random.randint(0, n-1)
+        i2 = random.randint(0, n-1)
+        while(i1 == i2):
+            i2 = random.randint(0, n-1)
+
+        PreviousValue = WeightedLatency(temp)
+        temp[i1], temp[i2] = temp[i2], temp[i1]
+        CurrentValue = WeightedLatency(temp)
+
+        if(CurrentValue < BestLatency):
+            iterations = 0
+            BestLatency = CurrentValue
+            BestQueue = temp.copy()
+            print('\nCurrent Best queue: ', BestQueue,
+                  '\nCurrent Best value: ', BestLatency, '\n',)
+        elif(random.random() < acceptance(PreviousValue, CurrentValue, tmp)):
+            iterations = 0
+        else:
+            temp[i1], temp[i2] = temp[i2], temp[i1]
+            iterations = iterations + 1
+
+        tmp = a*tmp
+
+    return BestQueue, BestLatency
 
 
 for i in range(0, n):
@@ -76,8 +120,14 @@ InitialLatency = WeightedLatency(InitialQueue.copy())
 
 print('Initial Path: ', InitialQueue, '\nInitial Distance: ', InitialLatency)
 
-RandomSearchBestQueue, RandomSearchBestValue = RandomSearch(
+RandomSearchBestQueue, RandomSearchBestLatency = RandomSearch(
     InitialQueue.copy())
 
 print('\n\n\n\n(RS)Final queue: ', RandomSearchBestQueue,
-      '\n(RS)Final Value: ', RandomSearchBestValue)
+      '\n(RS)Final latency: ', RandomSearchBestLatency)
+
+SimulatedAnnealingBestQueue, SimulatedAnnealingBestLatency = SimulatedAnnealing(
+    queue=InitialQueue.copy())
+
+print('\n\n\n\n(SA)Final queue: ', SimulatedAnnealingBestQueue,
+      '\n(SA)Final latency: ', SimulatedAnnealingBestLatency)
