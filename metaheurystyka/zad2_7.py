@@ -2,11 +2,12 @@ import generator as gen
 import numpy as np
 import random
 import math
+import time
 
 moduleName = '../CPLEX/generator'
 
 
-n = 20
+n = 50
 Z = 4124
 generator = gen.RandomNumberGenerator(Z)
 
@@ -52,7 +53,8 @@ def RandomSearch(queue, printMidPointValues=False):
 
 
 def acceptance(x1, x2, t):
-    return math.e**(-(x1-x2)/t)
+    value = pow(math.e, (-(x1-x2)/t))
+    return value
 
 
 def SimulatedAnnealing(queue, initialTemperature=1000, printMidPointValues=False):
@@ -66,9 +68,10 @@ def SimulatedAnnealing(queue, initialTemperature=1000, printMidPointValues=False
     if(printMidPointValues):
         print('\n\n\n\nInitial queue: ', queue,
               '\nInitial value: ', WeightedLatency(queue), '\n',)
-
+    startTime = time.time()
     while(iterations < 10000):
-
+        if(time.time()-startTime > 10):
+            break
         i1 = random.randint(0, n-1)
         i2 = random.randint(0, n-1)
         while(i1 == i2):
@@ -89,7 +92,8 @@ def SimulatedAnnealing(queue, initialTemperature=1000, printMidPointValues=False
             iterations = 0
         else:
             temp[i1], temp[i2] = temp[i2], temp[i1]
-            iterations = iterations + 1
+
+        iterations = iterations + 1
 
         tmp = a*tmp
 
@@ -97,16 +101,18 @@ def SimulatedAnnealing(queue, initialTemperature=1000, printMidPointValues=False
 
 
 def FindInitialTemperature(initialQueue):
-    for i in range(0, 1000):
-        Lowest = 999999999999999
-        Highest = 0
-        np.random.shuffle(initialQueue)
-        # print(initialQueue)
+    Lowest = 999999999999999
+    Highest = 0
+    for i in range(0, 10000):
         current = WeightedLatency(initialQueue)
         if current < Lowest:
             Lowest = current
         if current > Highest:
             Highest = current
+
+        np.random.shuffle(initialQueue)
+        # print(initialQueue)
+
     return abs(Highest-Lowest)
 
 
@@ -144,7 +150,7 @@ print('\n\n\n\n(RS)Final queue: ', RandomSearchBestQueue,
 
 initTemp = FindInitialTemperature(InitialQueue.copy())
 if(initTemp == 0):
-    initTemp = 100
+    initTemp = 1000
 print(initTemp)
 SimulatedAnnealingBestQueue, SimulatedAnnealingBestLatency = SimulatedAnnealing(
     queue=InitialQueue.copy(), initialTemperature=initTemp)
