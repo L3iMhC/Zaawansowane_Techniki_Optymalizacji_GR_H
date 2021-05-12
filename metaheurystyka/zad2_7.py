@@ -62,7 +62,7 @@ def acceptance(x1, x2, t):
     return value
 
 
-def SimulatedAnnealing(n, queue, initialTemperature=1000, printMidPointValues=False):
+def SimulatedAnnealing(n, queue, initialTemperature=1000, printMidPointValues=False, neighborhood='Other'):
 
     temp = queue
     BestLatency = WeightedLatency(queue)
@@ -79,30 +79,23 @@ def SimulatedAnnealing(n, queue, initialTemperature=1000, printMidPointValues=Fa
               '\nInitial value: ', WeightedLatency(queue), '\n',)
     startTime = time.time()
 
-    i1 = 0
-    i2 = n-1
-    pr = n//5  # Promien w jakim szukamy sasiadow
+    if(neighborhood=='Other'):
+        i1 = 0
+        i2 = n-1
+        pr = n//5  # Promien w jakim szukamy sasiadow
     while(iterations < 10000):
         if(time.time()-startTime > 10 or tmp < 1/finalTemp or tmp < finalTemp):  # To trzba też dostosować
             break
-        zi1 = i1  # Srodek zakresu w jakim szukamy i1
-        zi2 = i2  # Srodek zakresu w jakim szukamy i2
 
-        if(zi1-pr < 0):
-            zi1 = zi1+pr
-        if(zi1+pr > n-1):
-            zi1 = zi1-pr
-        if(zi2-pr < 0):
-            zi2 = zi2+pr
-        if(zi2+pr > n-1):
-            zi2 = zi2-pr
-        #print(i1, i2)
-        i1 = random.randint(zi1-pr, zi1+pr)
-        i2 = random.randint(zi2-pr, zi2+pr)
-        while(i1 == i2):
-            i2 = random.randint(zi2-pr, zi2+pr)
         PreviousValue = WeightedLatency(temp)
-        temp[i1], temp[i2] = temp[i2], temp[i1]
+
+        if(neighborhood=='Other'):
+            temp, i1, i2 = OtherNeighborhood(i1, i2, pr, n, temp)
+        elif(neighborhood=='Rand'):
+            temp, i1, i2 = RandomNeighborhood(n, temp)
+        else:
+            print('No zly parametr sasiedztwa')
+
         CurrentValue = WeightedLatency(temp)
 
         if(CurrentValue < BestLatency):
@@ -160,13 +153,43 @@ def WeightedLatency(queue):
         T[queue[i]] = max(0, C[queue[i]] - d[queue[i]])
     return (w*T).sum()
 
+def RandomNeighborhood(n, temp):
+    i1 = random.randint(0, n-1)
+    i2 = random.randint(0, n-1)
+    while(i1 == i2):
+        i2 = random.randint(0, n-1)
+    temp[i1], temp[i2] = temp[i2], temp[i1]
+    return temp, i1, i2
+
+def OtherNeighborhood(i1, i2, pr, n, temp):
+    zi1 = i1  # Srodek zakresu w jakim szukamy i1
+    zi2 = i2  # Srodek zakresu w jakim szukamy i2
+
+    if(zi1-pr < 0):
+        zi1 = zi1+pr
+    if(zi1+pr > n-1):
+        zi1 = zi1-pr
+    if(zi2-pr < 0):
+        zi2 = zi2+pr
+    if(zi2+pr > n-1):
+        zi2 = zi2-pr
+    #print(i1, i2)
+    i1 = random.randint(zi1-pr, zi1+pr)
+    i2 = random.randint(zi2-pr, zi2+pr)
+    while(i1 == i2):
+        i2 = random.randint(zi2-pr, zi2+pr)
+    temp[i1], temp[i2] = temp[i2], temp[i1]
+
+    return temp, i1, i2
 
 MaxWielkoscInstancji = 50
 MinWielkoscInstancji = 10
 RSValues = []
 RSTimes = []
-SAValues = []
-SATimes = []
+SA1Values = []#Sasiedztwo OtherNeigborhood
+SA1Times = []
+SA2Values = []#Sasiedztwo RandomNeighborhood
+SA2Times = []
 InitialValues = []
 for n in range(MinWielkoscInstancji, MaxWielkoscInstancji):
     print(n)
@@ -207,8 +230,16 @@ for n in range(MinWielkoscInstancji, MaxWielkoscInstancji):
     SimulatedAnnealingBestQueue, SimulatedAnnealingBestLatency = SimulatedAnnealing(n,
                                                                                     queue=InitialQueue.copy(), initialTemperature=initTemp)
     endTime = time.time()
-    SATimes.append(endTime-startTime)
-    SAValues.append(SimulatedAnnealingBestLatency)
+    SA1Times.append(endTime-startTime)
+    SA1Values.append(SimulatedAnnealingBestLatency)
+
+    #Random Neighborhood
+    startTime = time.time()
+    SimulatedAnnealingBestQueue, SimulatedAnnealingBestLatency = SimulatedAnnealing(n,
+                                                                                    queue=InitialQueue.copy(), initialTemperature=initTemp, neighborhood='Rand')
+    endTime = time.time()
+    SA2Times.append(endTime-startTime)
+    SA2Values.append(SimulatedAnnealingBestLatency)
     # print('\n\n\n\n(SA)Final queue: ', SimulatedAnnealingBestQueue,
     #       '\n(SA)Final latency: ', SimulatedAnnealingBestLatency)
 
@@ -217,7 +248,8 @@ plt.title("Czas minimalizacji problemu witi na jednej maszynie w zależności od
 plt.xlabel("Liczba zmiennych")
 plt.ylabel("Czas rozwiązywania")
 plt.plot(x, RSTimes, "o", label="Random Search")
-plt.plot(x, SATimes, "o", label="Symulowane wyżarzanie")
+plt.plot(x, SA1Times, "o", label="Symulowane wyżarzanie Sasiedztwo")
+plt.plot(x, SA2Times, "o", label="Symulowane wyżarzanie Losowe")
 plt.legend()
 plt.show()
 
@@ -225,7 +257,8 @@ plt.title("Znaleziona wartość minimalna problemu witi na jednej maszynie w zal
 plt.xlabel("Liczba zmiennych")
 plt.ylabel("Wartosc rozwiązywania")
 plt.plot(x, RSValues, "o", label="Random Search")
-plt.plot(x, SAValues, "o", label="Symulowane wyżarzanie")
+plt.plot(x, SA1Values, "o", label="Symulowane wyżarzanie Sasiedztwo")
+plt.plot(x, SA2Values, "o", label="Symulowane wyżarzanie Losowe")
 plt.plot(x, InitialValues, "o", label="Wartość początkowa")
 plt.legend()
 plt.show()
