@@ -1,8 +1,10 @@
+from numpy.lib.function_base import diff
 import generator as gen
 import numpy as np
 import random
 import math
 import time
+from matplotlib import pyplot as plt
 
 moduleName = '../CPLEX/generator'
 
@@ -53,7 +55,8 @@ def RandomSearch(queue, printMidPointValues=False):
 
 
 def acceptance(x1, x2, t):
-    value = pow(math.e, (-(x1-x2)/t))
+    different = -(x1-x2)
+    value = math.exp(different/t)
     return value
 
 
@@ -64,12 +67,13 @@ def SimulatedAnnealing(queue, initialTemperature=1000, printMidPointValues=False
     iterations = 0
 
     tmp = initialTemperature
+    finalTemp = initialTemperature/100
     a = 0.995
     if(printMidPointValues):
         print('\n\n\n\nInitial queue: ', queue,
               '\nInitial value: ', WeightedLatency(queue), '\n',)
     startTime = time.time()
-    while(iterations < 10000):
+    while(iterations < 10000 or tmp > finalTemp):
         if(time.time()-startTime > 10):
             break
         i1 = random.randint(0, n-1)
@@ -138,22 +142,70 @@ def WeightedLatency(queue):
     return (w*T).sum()
 
 
-InitialLatency = WeightedLatency(InitialQueue.copy())
+wielkoscInstancji = 15
 
-print('Initial queue: ', InitialQueue, '\nInitial latency: ', InitialLatency)
+RSValues = []
+RSTimes = []
+SAValues = []
+SATimes = []
+InitialValues = []
+for n in range(3, wielkoscInstancji):
+    p = np.zeros(n, dtype='int32')  # czas wykonania
+    w = np.zeros(n, dtype='int32')  # waga
+    d = np.zeros(n, dtype='int32')  # wymagany czas zakonczenia
+    S = 0
+    InitialQueue = np.zeros(n, dtype='int32')
+    for j in range(0, n):
+        InitialQueue[j] = j
+        p[j] = generator.nextInt(1, 30)
+        w[j] = generator.nextInt(1, 30)
+        S += p[j]
+    for j in range(0, n):
+        d[j] = generator.nextInt(1, S)
 
-RandomSearchBestQueue, RandomSearchBestLatency = RandomSearch(
-    InitialQueue.copy())
+    np.random.shuffle(InitialQueue)  # losowe rozwiazanie poczatkowe
+    InitialLatency = WeightedLatency(InitialQueue.copy())
+    InitialValues.append(InitialLatency)
+    # print('Initial queue: ', InitialQueue,
+    #       '\nInitial latency: ', InitialLatency)
 
-print('\n\n\n\n(RS)Final queue: ', RandomSearchBestQueue,
-      '\n(RS)Final latency: ', RandomSearchBestLatency)
+    startTime = time.time()
+    RandomSearchBestQueue, RandomSearchBestLatency = RandomSearch(
+        InitialQueue.copy())
+    endTime = time.time()
+    RSTimes.append(endTime-startTime)
+    RSValues.append(RandomSearchBestLatency)
 
-initTemp = FindInitialTemperature(InitialQueue.copy())
-if(initTemp == 0):
-    initTemp = 1000
-print(initTemp)
-SimulatedAnnealingBestQueue, SimulatedAnnealingBestLatency = SimulatedAnnealing(
-    queue=InitialQueue.copy(), initialTemperature=initTemp)
+    # print('\n\n\n\n(RS)Final queue: ', RandomSearchBestQueue,
+    #       '\n(RS)Final latency: ', RandomSearchBestLatency)
 
-print('\n\n\n\n(SA)Final queue: ', SimulatedAnnealingBestQueue,
-      '\n(SA)Final latency: ', SimulatedAnnealingBestLatency)
+    initTemp = FindInitialTemperature(InitialQueue.copy())
+    if(initTemp == 0):
+        initTemp = 1000
+
+    startTime = time.time()
+    SimulatedAnnealingBestQueue, SimulatedAnnealingBestLatency = SimulatedAnnealing(
+        queue=InitialQueue.copy(), initialTemperature=initTemp)
+    endTime = time.time()
+    SATimes.append(endTime-startTime)
+    SAValues.append(SimulatedAnnealingBestLatency)
+    # print('\n\n\n\n(SA)Final queue: ', SimulatedAnnealingBestQueue,
+    #       '\n(SA)Final latency: ', SimulatedAnnealingBestLatency)
+
+x = np.arange(3, wielkoscInstancji)
+plt.title("Czas maksymalizacji problemu witi na jednej maszynie w zależności od wielkości instancji")
+plt.xlabel("Liczba zmiennych")
+plt.ylabel("Czas rozwiązywania")
+plt.plot(x, RSTimes, "o", label="Random Search")
+plt.plot(x, SATimes, "o", label="Symulowane wyżarzanie")
+plt.legend()
+plt.show()
+
+plt.title("Znaleziona wartość minimalna problemu witi na jednej maszynie w zależności od wielkości instancji")
+plt.xlabel("Liczba zmiennych")
+plt.ylabel("Wartosc rozwiązywania")
+plt.plot(x, RSValues, "o", label="Random Search")
+plt.plot(x, SAValues, "o", label="Symulowane wyżarzanie")
+plt.plot(x, InitialValues, "o", label="Wartość początkowa")
+plt.legend()
+plt.show()
