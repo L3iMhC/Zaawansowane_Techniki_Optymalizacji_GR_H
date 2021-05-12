@@ -21,7 +21,7 @@ S = 0
 InitialQueue = np.zeros(n, dtype='int32')
 
 
-def RandomSearch(queue, printMidPointValues=False):
+def RandomSearch(n, queue, printMidPointValues=False, neighborhood='Other'):
 
     temp = queue
     BestQueue = queue
@@ -30,15 +30,19 @@ def RandomSearch(queue, printMidPointValues=False):
     if(printMidPointValues):
         print('\n\n\n\nInitial queue: ', queue,
               '\nInitial latency: ', WeightedLatency(queue), '\n',)
+    if(neighborhood=='Other'):
+        i1 = 0
+        i2 = n-1
+        pr = n//5  # Promien w jakim szukamy sasiadow
+    while(iterations < 10000):
 
-    while(iterations < 1000):
+        if(neighborhood=='Other'):
+            temp, i1, i2 = OtherNeighborhood(i1, i2, pr, n, temp)
+        elif(neighborhood=='Rand'):
+            temp, i1, i2 = RandomNeighborhood(n, temp)
+        else:
+            print('No zly parametr sasiedztwa')
 
-        i1 = random.randint(0, n-1)
-        i2 = random.randint(0, n-1)
-        while(i1 == i2):
-            i2 = random.randint(0, n-1)
-
-        temp[i1], temp[i2] = temp[i2], temp[i1]
         CurrentLatency = WeightedLatency(temp)
 
         if(CurrentLatency < BestLatency):
@@ -184,8 +188,10 @@ def OtherNeighborhood(i1, i2, pr, n, temp):
 
 MaxWielkoscInstancji = 50
 MinWielkoscInstancji = 10
-RSValues = []
-RSTimes = []
+RS1Values = []#Sasiedztwo OtherNeigborhood
+RS1Times = []
+RS2Values = []#Sasiedztwo RandomNeighborhood
+RS2Times = []
 SA1Values = []#Sasiedztwo OtherNeigborhood
 SA1Times = []
 SA2Values = []#Sasiedztwo RandomNeighborhood
@@ -214,11 +220,18 @@ for n in range(MinWielkoscInstancji, MaxWielkoscInstancji):
 
     startTime = time.time()
     RandomSearchBestQueue, RandomSearchBestLatency = RandomSearch(
-        InitialQueue.copy())
+        n, InitialQueue.copy())
     endTime = time.time()
-    RSTimes.append(endTime-startTime)
-    RSValues.append(RandomSearchBestLatency)
+    RS1Times.append(endTime-startTime)
+    RS1Values.append(RandomSearchBestLatency)
 
+    #Random Neighborhood
+    startTime = time.time()
+    RandomSearchBestQueue, RandomSearchBestLatency = RandomSearch(
+        n, InitialQueue.copy(),neighborhood='Rand')
+    endTime = time.time()
+    RS2Times.append(endTime-startTime)
+    RS2Values.append(RandomSearchBestLatency)
     # print('\n\n\n\n(RS)Final queue: ', RandomSearchBestQueue,
     #       '\n(RS)Final latency: ', RandomSearchBestLatency)
 
@@ -247,7 +260,8 @@ x = np.arange(MinWielkoscInstancji, MaxWielkoscInstancji)
 plt.title("Czas minimalizacji problemu witi na jednej maszynie w zależności od wielkości instancji")
 plt.xlabel("Liczba zmiennych")
 plt.ylabel("Czas rozwiązywania")
-plt.plot(x, RSTimes, "o", label="Random Search")
+plt.plot(x, RS1Times, "o", label="Random Search Sasiedztwo")
+plt.plot(x, RS2Times, "o", label="Random Search Losowe")
 plt.plot(x, SA1Times, "o", label="Symulowane wyżarzanie Sasiedztwo")
 plt.plot(x, SA2Times, "o", label="Symulowane wyżarzanie Losowe")
 plt.legend()
@@ -256,7 +270,8 @@ plt.show()
 plt.title("Znaleziona wartość minimalna problemu witi na jednej maszynie w zależności od wielkości instancji")
 plt.xlabel("Liczba zmiennych")
 plt.ylabel("Wartosc rozwiązywania")
-plt.plot(x, RSValues, "o", label="Random Search")
+plt.plot(x, RS1Values, "o", label="Random Search Sasiedztwo")
+plt.plot(x, RS2Values, "o", label="Random Search Losowe")
 plt.plot(x, SA1Values, "o", label="Symulowane wyżarzanie Sasiedztwo")
 plt.plot(x, SA2Values, "o", label="Symulowane wyżarzanie Losowe")
 plt.plot(x, InitialValues, "o", label="Wartość początkowa")
