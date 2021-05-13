@@ -60,7 +60,7 @@ def RandomSearch(n, queue, printMidPointValues=False, neighborhood='Other'):
 
 
 def acceptance(x1, x2, t):
-    different = -(x1-x2)
+    different = -(x2-x1)
     divided = different//t
     value = math.exp(divided)
     return value
