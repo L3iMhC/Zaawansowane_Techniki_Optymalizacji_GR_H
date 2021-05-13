@@ -197,8 +197,11 @@ SA1Times = []
 SA2Values = []#Sasiedztwo RandomNeighborhood
 SA2Times = []
 InitialValues = []
+
 for n in range(MinWielkoscInstancji, MaxWielkoscInstancji):
     print(n)
+    InitialQueues = []
+
     p = np.zeros(n, dtype='int32')  # czas wykonania
     w = np.zeros(n, dtype='int32')  # waga
     d = np.zeros(n, dtype='int32')  # wymagany czas zakonczenia
@@ -211,12 +214,21 @@ for n in range(MinWielkoscInstancji, MaxWielkoscInstancji):
         S += p[j]
     for j in range(0, n):
         d[j] = generator.nextInt(1, S)
+    
+    BestLatency = 9999999999
+    for i in range(0, 100):
+        np.random.shuffle(InitialQueue)
+        InitialQueues.append(InitialQueue.copy())  # losowe rozwiazanie poczatkowe
+    for i in range(0, 100):
+        CurrentLatency = WeightedLatency(InitialQueues[i])
+        if(CurrentLatency<BestLatency):
+            BestLatency = CurrentLatency
+            InitialQueue = InitialQueues[i]
 
-    np.random.shuffle(InitialQueue)  # losowe rozwiazanie poczatkowe
     InitialLatency = WeightedLatency(InitialQueue.copy())
     InitialValues.append(InitialLatency)
-    # print('Initial queue: ', InitialQueue,
-    #       '\nInitial latency: ', InitialLatency)
+    #print('Initial queue: ', InitialQueue,
+     #      '\nInitial latency: ', InitialLatency)
 
     startTime = time.time()
     RandomSearchBestQueue, RandomSearchBestLatency = RandomSearch(
