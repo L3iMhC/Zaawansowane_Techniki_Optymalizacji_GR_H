@@ -1,5 +1,6 @@
 import generator as gen
 import numpy as np
+import random
 
 Z = 4124
 generator = gen.RandomNumberGenerator(Z)
@@ -52,11 +53,39 @@ def do_cross_over(parents):
 
 
 def do_mutation(child):
+    for i in range(0, len(child)):
+        probability = random.uniform(0.0, 100.0)
+        if(probability<=5):
+            index = random.randint(0, len(child)-1)
+            while (i == index):
+                index = random.randint(0, len(child)-1)
+            child[i], child[index] = child[index], child[i]
     return child
 
 
-def make_new_population(population, children):
-    return children
+def make_new_population(population, children, n, m, p):
+    whole_population = population + children
+    new_population = []
+    results = []
+    for i in range (0, len(whole_population)):
+        results.append(all_task_done_time(whole_population[i], n, m, p))
+
+    for i in range (0, len(population)):
+        if (i < len(population)/10):
+            index = results.index(min(results))
+        else:
+            index = random.randint(0,len(whole_population)-1)
+
+        new_population.append(whole_population.pop(index))
+        del results[index]
+
+    #print("###################")
+    #print("Population:     ", population)
+    #print("Children:       ", children)
+    #print("New_population: ", new_population)
+    #print("###################")
+
+    return new_population
 
 
 def do_ga(initial_schedule, n, m, p, initial_population_size=5):
@@ -93,7 +122,7 @@ def do_ga(initial_schedule, n, m, p, initial_population_size=5):
                 if mutationed_value < best_value:
                     best_value = mutationed_value
                     best_schedule = mutationed_child
-        population = make_new_population(population, children)
+        population = make_new_population(population, children, n, m, p)
 
         iterations += 1
     return best_schedule, best_value
@@ -123,4 +152,4 @@ def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_mach
                 random_shuffle_minimalization_values)//repeats)
 
 
-do_experiments(repeats=1, max_tasks=10, max_machines=2)
+do_experiments(repeats=1, max_tasks=7, max_machines=2)
