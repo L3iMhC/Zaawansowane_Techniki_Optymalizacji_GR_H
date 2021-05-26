@@ -49,6 +49,50 @@ def do_cross_over(parents):
             children.append(child2)
     return children
 
+
+def do_cross_over1(parents):
+    crossing_point1 = len(parents[0])//3-1
+    crossing_point2 = len(parents[0])//3*2+1
+    children = []
+    for parent1 in parents:
+        for parent2 in parents:
+            if np.array_equal(parent1, parent2):
+                continue
+            child1, child2 = np.zeros(len(parent1), dtype=np.int32), np.zeros(
+                len(parent1), dtype=np.int32)
+
+            indexes=[]
+            items1 = parent1[crossing_point1:crossing_point2]
+            for item in items1:
+                for i in range (0,len(parent2)):
+                    if(parent2[i]==item):
+                        indexes.append(i)
+            indexes.sort()
+            items2=[]
+
+            child2 = parent2
+            for index in indexes:
+                items2.append(parent2[index])
+                child2[index] = items1[indexes.index(index)]
+
+            child1[:crossing_point1] = parent1[:crossing_point1]
+            child1[crossing_point2:] = parent1[crossing_point2:]
+            child1[crossing_point1:crossing_point2] = items2
+            
+            if np.array_equal(parent1, child1) & np.array_equal(parent2, child2):
+                continue
+            else:
+                #print("\nChild Creation:\n", indexes)
+                #print("Parent1: ", parent1, "\nParent2: ", parent2, "\nChild1: ", child1, "\nChild2: ", child2, "\n###############\n")
+                if not np.array_equal(parent1, child1):
+                    children.append(child1)
+                if not np.array_equal(parent2, child2):
+                    children.append(child2)
+                    print("\n!!!!!!!!!!!!!!!!!!!!CHILD2CHANGED!!!!!!!!!!!!!!!!!!\n")
+                    print("\nChild Creation:\n", indexes)
+                    print("Parent1: ", parent1, "\nParent2: ", parent2, "\nChild1: ", child1, "\nChild2: ", child2, "\n###############\n")
+    return children
+
 # Mutacja do implementacji
 
 
@@ -59,7 +103,9 @@ def do_mutation(child):
             index = random.randint(0, len(child)-1)
             while (i == index):
                 index = random.randint(0, len(child)-1)
+            #print("\nChild one:", child)
             child[i], child[index] = child[index], child[i]
+            #print("\nChild po mutacji:", child)
     return child
 
 
@@ -109,7 +155,7 @@ def do_ga(initial_schedule, n, m, p, initial_population_size=5):
     iterations = 0
     while iterations != 1:
         parents = select_parents(population, 6)
-        children = do_cross_over(parents)
+        children = do_cross_over1(parents)
         for child in children:
             value = all_task_done_time(child, n, m, p)
             if value < best_value:
@@ -152,4 +198,4 @@ def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_mach
                 random_shuffle_minimalization_values)//repeats)
 
 
-do_experiments(repeats=1, max_tasks=7, max_machines=2)
+do_experiments(repeats=1, max_tasks=20, max_machines=10)
