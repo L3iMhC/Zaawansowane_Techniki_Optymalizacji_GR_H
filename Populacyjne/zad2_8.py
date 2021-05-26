@@ -31,13 +31,13 @@ def select_parents(population, parents_count):
 def do_cross_over(parents):
     crossing_point1 = len(parents[0])//3
     crossing_point2 = len(parents[0])//3*2
-    print(crossing_point1, crossing_point2)
     children = []
     for parent1 in parents:
         for parent2 in parents:
             if np.array_equal(parent1, parent2):
                 continue
-            child1, child2 = np.zeros(len(parent1)), np.zeros(len(parent1))
+            child1, child2 = np.zeros(len(parent1), dtype=np.int32), np.zeros(
+                len(parent1), dtype=np.int32)
             child1[:crossing_point1] = parent1[:crossing_point1]
             child1[crossing_point2:] = parent1[crossing_point2:]
             child1[crossing_point1:crossing_point2] = parent2[crossing_point1:crossing_point2]
@@ -61,6 +61,7 @@ def make_new_population(population, children):
 
 def do_ga(initial_schedule, n, m, p, initial_population_size=5):
     # Najlepsza dotychczasowa wartość
+
     best_value = all_task_done_time(initial_schedule, n, m, p)
     best_schedule = initial_schedule
     # Zmiana na schedule dla lepszej czytelności
@@ -68,7 +69,6 @@ def do_ga(initial_schedule, n, m, p, initial_population_size=5):
     # Bieżąca populacja
     population = []
     population.append(initial_schedule)
-
     # Generacja populacji początkowej
     for _ in range(0, initial_population_size):
         np.random.shuffle(schedule)
@@ -77,7 +77,6 @@ def do_ga(initial_schedule, n, m, p, initial_population_size=5):
         if value < best_value:
             best_value = value
             best_schedule = schedule
-
     iterations = 0
     while iterations != 1:
         parents = select_parents(population, 6)
