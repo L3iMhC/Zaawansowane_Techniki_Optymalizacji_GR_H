@@ -61,16 +61,16 @@ def do_cross_over1(parents):
             child1, child2 = np.zeros(len(parent1), dtype=np.int32), np.zeros(
                 len(parent1), dtype=np.int32)
 
-            indexes=[]
+            indexes = []
             items1 = parent1[crossing_point1:crossing_point2]
 
             for item in items1:
-                for i in range (0,len(parent2)):
-                    if(parent2[i]==item):
+                for i in range(0, len(parent2)):
+                    if(parent2[i] == item):
                         indexes.append(i)
 
             indexes.sort()
-            items2=[]
+            items2 = []
             child2 = parent2.copy()
 
             for index in indexes:
@@ -85,19 +85,19 @@ def do_cross_over1(parents):
             child1[:crossing_point1] = parent1[:crossing_point1]
             child1[crossing_point2:] = parent1[crossing_point2:]
             child1[crossing_point1:crossing_point2] = items2
-            
+
             if np.array_equal(parent1, child1) & np.array_equal(parent2, child2):
                 continue
             else:
                 #print("\nChild Creation:\nIndexes: ", indexes,"\nItems1:", items1,"\nItems2", items2)
-                #print("\nParent1: ", parent1, "\nParent2: ", parent2, "\nChild1: ", child1, "\nChild2: ", child2, "\n###############\n")
+                # print("\nParent1: ", parent1, "\nParent2: ", parent2, "\nChild1: ", child1, "\nChild2: ", child2, "\n###############\n")
                 if not np.array_equal(parent1, child1):
                     children.append(child1)
-                if not np.array_equal(parent2, child2):#To sie nigdy nie wywoluje
+                if not np.array_equal(parent2, child2):  # To sie nigdy nie wywoluje
                     children.append(child2)
-                    #print("\n!!!!!!!!!!!!!!!!!!!!CHILD2CHANGED!!!!!!!!!!!!!!!!!!\n")
+                    # print("\n!!!!!!!!!!!!!!!!!!!!CHILD2CHANGED!!!!!!!!!!!!!!!!!!\n")
                     #print("\nChild Creation:\n", indexes)
-                    #print("Parent1: ", parent1, "\nParent2: ", parent2, "\nChild1: ", child1, "\nChild2: ", child2, "\n###############\n")
+                    # print("Parent1: ", parent1, "\nParent2: ", parent2, "\nChild1: ", child1, "\nChild2: ", child2, "\n###############\n")
     return children
 
 # Mutacja do implementacji
@@ -106,7 +106,7 @@ def do_cross_over1(parents):
 def do_mutation(child):
     for i in range(0, len(child)):
         probability = random.uniform(0.0, 100.0)
-        if(probability<=5):
+        if(probability <= 5):
             index = random.randint(0, len(child)-1)
             while (i == index):
                 index = random.randint(0, len(child)-1)
@@ -120,23 +120,23 @@ def make_new_population(population, children, n, m, p):
     whole_population = population + children
     new_population = []
     results = []
-    for i in range (0, len(whole_population)):
+    for i in range(0, len(whole_population)):
         results.append(all_task_done_time(whole_population[i], n, m, p))
 
-    for i in range (0, len(population)):
+    for i in range(0, len(population)):
         if (i < len(population)/10):
             index = results.index(min(results))
         else:
-            index = random.randint(0,len(whole_population)-1)
+            index = random.randint(0, len(whole_population)-1)
 
         new_population.append(whole_population.pop(index))
         del results[index]
 
-    #print("###################")
+    # print("###################")
     #print("Population:     ", population)
     #print("Children:       ", children)
     #print("New_population: ", new_population)
-    #print("###################")
+    # print("###################")
 
     return new_population
 
@@ -185,6 +185,7 @@ def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_mach
     for n in range(min_tasks, max_tasks+1):
         for m in range(min_machines, max_machines+1):
             random_shuffle_minimalization_values = []
+            ga_minimalization_values = []
             for _ in range(0, repeats):
                 # Generacja instancji
                 p = np.zeros((n, m))
@@ -199,10 +200,13 @@ def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_mach
                 random_shuffle_minimalization_values.append(
                     all_task_done_time(initial_schedule, n, m, p))
                 # Minimalizacja algorytmem genetycznym
-                do_ga(initial_schedule, n, m, p)
+                sc, value = do_ga(initial_schedule, n, m, p)
+                ga_minimalization_values.append(value)
 
             print("Random shuffle for", n, "tasks and", m, "machines", "mean minimalization value=", sum(
                 random_shuffle_minimalization_values)//repeats)
+            print("Genetic algorithm  for", n, "tasks and", m, "machines", "mean minimalization value=", sum(
+                ga_minimalization_values)//repeats)
 
 
 do_experiments(repeats=1, max_tasks=7, max_machines=10)
