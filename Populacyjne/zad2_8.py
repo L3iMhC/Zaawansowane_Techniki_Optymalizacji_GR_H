@@ -107,7 +107,7 @@ def do_cross_over1(parents):
 def do_mutation(child):
     for i in range(0, len(child)):
         probability = random.uniform(0.0, 100.0)
-        if(probability <= 5):
+        if(probability <= 5//len(child)):
             index = random.randint(0, len(child)-1)
             while (i == index):
                 index = random.randint(0, len(child)-1)
@@ -160,15 +160,17 @@ def do_ga(initial_schedule, n, m, p, initial_population_size=10):
         if value < best_value:
             best_value = value
             best_schedule = schedule
+            print("\nnew best value:", best_value)
     iterations = 0
     while iterations != 1:
-        parents = select_parents(population, initial_population_size)
+        parents = select_parents(population, initial_population_size//2)
         children = do_cross_over1(parents)
         for child in children:
             value = all_task_done_time(child, n, m, p)
             if value < best_value:
                 best_value = value
                 best_schedule = child
+                print("\nnew best value:", best_value)
                 iterations = 0
             mutationed_child = do_mutation(child)
             if not np.array_equal(child, mutationed_child):
@@ -177,6 +179,7 @@ def do_ga(initial_schedule, n, m, p, initial_population_size=10):
                 if mutationed_value < best_value:
                     best_value = mutationed_value
                     best_schedule = mutationed_child
+                    print("\nnew best value:", best_value)
                     iterations = 0
         population = make_new_population(population, children, n, m, p)
 
@@ -184,7 +187,7 @@ def do_ga(initial_schedule, n, m, p, initial_population_size=10):
     return best_schedule, best_value
 
 
-def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_machines=3, oneMachineCount=0):
+def do_experiments(repeats=1, min_tasks=49, max_tasks=5, min_machines=2, max_machines=3, oneMachineCount=0):
     if oneMachineCount != 0:
         random_shuffle_values = []
         ga_values = []
@@ -258,4 +261,4 @@ def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_mach
                       "machines", "mean minimalization value=", ga_mean)
 
 
-do_experiments(repeats=5, max_tasks=50, max_machines=10, oneMachineCount=3)
+do_experiments(repeats=1, max_tasks=50, max_machines=10, oneMachineCount=3)
