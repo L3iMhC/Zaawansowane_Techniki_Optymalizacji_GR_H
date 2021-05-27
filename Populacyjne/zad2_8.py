@@ -63,17 +63,24 @@ def do_cross_over1(parents):
 
             indexes=[]
             items1 = parent1[crossing_point1:crossing_point2]
+
             for item in items1:
                 for i in range (0,len(parent2)):
                     if(parent2[i]==item):
                         indexes.append(i)
+
             indexes.sort()
             items2=[]
+            child2 = parent2.copy()
 
-            child2 = parent2
             for index in indexes:
                 items2.append(parent2[index])
-                child2[index] = items1[indexes.index(index)]
+                #print("\nOcochodzi:\n", parent2, parent2[index], index, items2)
+                if not child2[index] == items1[indexes.index(index)]:
+                    child2[index] = items1[indexes.index(index)]
+
+            #print("\nItems check:\n", indexes, items2)
+            #print("\n jeszcze parent", parent2, indexes, items2)
 
             child1[:crossing_point1] = parent1[:crossing_point1]
             child1[crossing_point2:] = parent1[crossing_point2:]
@@ -82,15 +89,15 @@ def do_cross_over1(parents):
             if np.array_equal(parent1, child1) & np.array_equal(parent2, child2):
                 continue
             else:
-                #print("\nChild Creation:\n", indexes)
-                #print("Parent1: ", parent1, "\nParent2: ", parent2, "\nChild1: ", child1, "\nChild2: ", child2, "\n###############\n")
+                #print("\nChild Creation:\nIndexes: ", indexes,"\nItems1:", items1,"\nItems2", items2)
+                #print("\nParent1: ", parent1, "\nParent2: ", parent2, "\nChild1: ", child1, "\nChild2: ", child2, "\n###############\n")
                 if not np.array_equal(parent1, child1):
                     children.append(child1)
-                if not np.array_equal(parent2, child2):
+                if not np.array_equal(parent2, child2):#To sie nigdy nie wywoluje
                     children.append(child2)
-                    print("\n!!!!!!!!!!!!!!!!!!!!CHILD2CHANGED!!!!!!!!!!!!!!!!!!\n")
-                    print("\nChild Creation:\n", indexes)
-                    print("Parent1: ", parent1, "\nParent2: ", parent2, "\nChild1: ", child1, "\nChild2: ", child2, "\n###############\n")
+                    #print("\n!!!!!!!!!!!!!!!!!!!!CHILD2CHANGED!!!!!!!!!!!!!!!!!!\n")
+                    #print("\nChild Creation:\n", indexes)
+                    #print("Parent1: ", parent1, "\nParent2: ", parent2, "\nChild1: ", child1, "\nChild2: ", child2, "\n###############\n")
     return children
 
 # Mutacja do implementacji
@@ -198,4 +205,4 @@ def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_mach
                 random_shuffle_minimalization_values)//repeats)
 
 
-do_experiments(repeats=1, max_tasks=20, max_machines=10)
+do_experiments(repeats=1, max_tasks=7, max_machines=10)
