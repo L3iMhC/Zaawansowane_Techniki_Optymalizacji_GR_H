@@ -142,7 +142,7 @@ def make_new_population(population, children, n, m, p):
     return new_population
 
 
-def do_ga(initial_schedule, n, m, p, initial_population_size=5):
+def do_ga(initial_schedule, n, m, p, initial_population_size=10):
     # Najlepsza dotychczasowa wartość
 
     best_value = all_task_done_time(initial_schedule, n, m, p)
@@ -162,13 +162,14 @@ def do_ga(initial_schedule, n, m, p, initial_population_size=5):
             best_schedule = schedule
     iterations = 0
     while iterations != 1:
-        parents = select_parents(population, 6)
+        parents = select_parents(population, initial_population_size)
         children = do_cross_over1(parents)
         for child in children:
             value = all_task_done_time(child, n, m, p)
             if value < best_value:
                 best_value = value
                 best_schedule = child
+                iterations = 0
             mutationed_child = do_mutation(child)
             if not np.array_equal(child, mutationed_child):
                 mutationed_value = all_task_done_time(
@@ -176,6 +177,7 @@ def do_ga(initial_schedule, n, m, p, initial_population_size=5):
                 if mutationed_value < best_value:
                     best_value = mutationed_value
                     best_schedule = mutationed_child
+                    iterations = 0
         population = make_new_population(population, children, n, m, p)
 
         iterations += 1
@@ -218,10 +220,10 @@ def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_mach
             ga_values.append(ga_mean)
         x = np.arange(min_tasks, max_tasks+1)
         plt.title(
-            "Czas minimalizacji permutacyjnego problemu przepływowego na jednej maszynie w zależności od wielkości instancji")
+            "Wartość minimalizacji permutacyjnego problemu przepływowego na jednej maszynie w zależności od wielkości instancji")
         plt.xlabel("Liczba zmiennych")
-        plt.ylabel("Czas rozwiązywania")
-        plt.plot(x, random_shuffle_values, "o", label="Random shuffle")
+        plt.ylabel("Wartość rozwiązania")
+        plt.plot(x, random_shuffle_values, "o", label="Random initial shuffle")
         plt.plot(x, ga_values, "o", label="Genetic algorithm")
         plt.legend()
         plt.show()
@@ -256,4 +258,4 @@ def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_mach
                       "machines", "mean minimalization value=", ga_mean)
 
 
-do_experiments(repeats=10, max_tasks=50, max_machines=10, oneMachineCount=10)
+do_experiments(repeats=5, max_tasks=50, max_machines=10, oneMachineCount=3)
