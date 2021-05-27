@@ -1,6 +1,7 @@
 import generator as gen
 import numpy as np
 import random
+from matplotlib import pyplot as plt
 
 Z = 4124
 generator = gen.RandomNumberGenerator(Z)
@@ -181,9 +182,12 @@ def do_ga(initial_schedule, n, m, p, initial_population_size=5):
     return best_schedule, best_value
 
 
-def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_machines=3):
-    for n in range(min_tasks, max_tasks+1):
-        for m in range(min_machines, max_machines+1):
+def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_machines=3, oneMachineCount=0):
+    if oneMachineCount != 0:
+        random_shuffle_values = []
+        ga_values = []
+        m = oneMachineCount
+        for n in range(min_tasks, max_tasks+1):
             random_shuffle_minimalization_values = []
             ga_minimalization_values = []
             for _ in range(0, repeats):
@@ -202,11 +206,54 @@ def do_experiments(repeats=1, min_tasks=5, max_tasks=5, min_machines=2, max_mach
                 # Minimalizacja algorytmem genetycznym
                 sc, value = do_ga(initial_schedule, n, m, p)
                 ga_minimalization_values.append(value)
+            rshuffle_mean = sum(
+                random_shuffle_minimalization_values)//repeats
+            ga_mean = sum(
+                ga_minimalization_values)//repeats
+            print("Random shuffle for", n, "tasks and", m, "machines",
+                  "mean minimalization value=", rshuffle_mean)
+            print("Genetic algorithm  for", n, "tasks and", m,
+                  "machines", "mean minimalization value=", ga_mean)
+            random_shuffle_values.append(rshuffle_mean)
+            ga_values.append(ga_mean)
+        x = np.arange(min_tasks, max_tasks+1)
+        plt.title(
+            "Czas minimalizacji permutacyjnego problemu przepływowego na jednej maszynie w zależności od wielkości instancji")
+        plt.xlabel("Liczba zmiennych")
+        plt.ylabel("Czas rozwiązywania")
+        plt.plot(x, random_shuffle_values, "o", label="Random shuffle")
+        plt.plot(x, ga_values, "o", label="Genetic algorithm")
+        plt.legend()
+        plt.show()
+    else:
+        for n in range(min_tasks, max_tasks+1):
+            for m in range(min_machines, max_machines+1):
+                random_shuffle_minimalization_values = []
+                ga_minimalization_values = []
+                for _ in range(0, repeats):
+                    # Generacja instancji
+                    p = np.zeros((n, m))
+                    initial_schedule = np.zeros(n, dtype=np.int32)
+                    for i in range(0, n):
+                        initial_schedule[i] = i
+                        for j in range(0, m):
+                            p[i][j] = generator.nextInt(1, 99)
+                    # Losowanie początkowego harmonogramu
+                    np.random.shuffle(initial_schedule)
+                    # Dodanie wartości czasu końcowego dla początkowego harmonogramu
+                    random_shuffle_minimalization_values.append(
+                        all_task_done_time(initial_schedule, n, m, p))
+                    # Minimalizacja algorytmem genetycznym
+                    sc, value = do_ga(initial_schedule, n, m, p)
+                    ga_minimalization_values.append(value)
+                rshuffle_mean = sum(
+                    random_shuffle_minimalization_values)//repeats
+                ga_mean = sum(
+                    ga_minimalization_values)//repeats
+                print("Random shuffle for", n, "tasks and", m, "machines",
+                      "mean minimalization value=", rshuffle_mean)
+                print("Genetic algorithm  for", n, "tasks and", m,
+                      "machines", "mean minimalization value=", ga_mean)
 
-            print("Random shuffle for", n, "tasks and", m, "machines", "mean minimalization value=", sum(
-                random_shuffle_minimalization_values)//repeats)
-            print("Genetic algorithm  for", n, "tasks and", m, "machines", "mean minimalization value=", sum(
-                ga_minimalization_values)//repeats)
 
-
-do_experiments(repeats=1, max_tasks=7, max_machines=10)
+do_experiments(repeats=10, max_tasks=50, max_machines=10, oneMachineCount=10)
