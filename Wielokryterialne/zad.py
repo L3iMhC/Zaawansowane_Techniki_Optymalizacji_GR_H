@@ -1,6 +1,7 @@
 # Kryteria 2, 3, 4, 5
 # Wizualizacja 1, 3, 4, 7
 
+from numpy.core.fromnumeric import mean
 import generator as gen
 import numpy as np
 import random
@@ -136,6 +137,7 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
             d[j] = generator.nextInt(A, B)
 
         max_iterations = 10
+        HVIs = []
         for max_iterations in [100, 200, 400, 800, 1600]:
             P = []
             iters = 0
@@ -154,7 +156,6 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
                 x = x_prim
                 iters += 1
             F = make_Pareto_from_P(P)
-            print(F)
             F = np.array(F)
             P = np.array(P)
             #print(F[:, 0])
@@ -162,13 +163,12 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
             # np.sort(F[:,0])
             # F[F[:,1].argsort()[::-1]]
             F = F[(-F[:, 0]).argsort()]
-            print(F)
             plt.plot(P[:, 1], P[:, 0], 'bo')
             plt.plot(F[:, 1], F[:, 0], 'ro-')
             plt.show()
 
             HVI = calculate_HVI(F)
-            print("\nHVI:", HVI, "\n###\n")
+            HVIs.append(HVI)
             worse = find_worse_result(F, P)
             results_range = find_range_of_results(F, worse)
             criterias_with_results = {
@@ -176,7 +176,6 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
             }
 
             prepared_data = prepare_data(F, worse)
-            print(prepared_data)
 
             prepared_data = normalize_data(prepared_data, results_range)
 
@@ -194,6 +193,7 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
                        ['Rozw. 1', 'Rozw. 2', 'Rozw. 3', 'Rozw. 4'])
             plt.legend()
             plt.show()
+        print("\nHVI:", mean(HVIs), "\n###\n")
 
 
 def normalize_data(data, data_range):
@@ -236,7 +236,6 @@ def find_range_of_results(F, worse):
 
 
 def find_worse_result(F, P):
-    print(P, F)
     for p in P:
         for f in F:
             if p[0] > f[0] and p[1] > f[1]:
