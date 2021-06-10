@@ -89,8 +89,8 @@ def is_dominated(k_x_prim, k_x):
 
 def make_Pareto_from_P(P):
     F = P.copy()
-    #Z jakiegos powodu jak sie to robi w petli to dziala lepiej xd - ale dalej nie idealnie
-    for i in range (0,10):
+    # Z jakiegos powodu jak sie to robi w petli to dziala lepiej xd - ale dalej nie idealnie
+    for i in range(0, 10):
         for a in F:
             for b in F:
                 if(a != b and is_dominated(b, a)):
@@ -99,20 +99,20 @@ def make_Pareto_from_P(P):
     return F
 
 
-#Sumujemy prostokaty
+# Sumujemy prostokaty
 def calculate_HVI(F):
-    z1=1.2*max(F[:,0])
-    z2=1.2*max(F[:,1])
-    HVI=0
+    z1 = 1.2*max(F[:, 0])
+    z2 = 1.2*max(F[:, 1])
+    HVI = 0
 
-    #Posortowanie F malejaco w zaleznosci od F[:,0]
+    # Posortowanie F malejaco w zaleznosci od F[:,0]
     for i in range(len(F)):
         if i == 0:
-            x=z1-F[i,0]
+            x = z1-F[i, 0]
         else:
-            x=F[i-1,0] - F[i,0]
-        y=z2-F[i,1]
-        HVI+=x*y
+            x = F[i-1, 0] - F[i, 0]
+        y = z2-F[i, 1]
+        HVI += x*y
 
     return HVI
 
@@ -159,15 +159,74 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
             P = np.array(P)
             #print(F[:, 0])
             #print(F[:, 1])
-            #np.sort(F[:,0])
-            #F[F[:,1].argsort()[::-1]]
-            F = F[(-F[:,0]).argsort()]
+            # np.sort(F[:,0])
+            # F[F[:,1].argsort()[::-1]]
+            F = F[(-F[:, 0]).argsort()]
             print(F)
             plt.plot(P[:, 1], P[:, 0], 'bo')
             plt.plot(F[:, 1], F[:, 0], 'ro-')
             plt.show()
-            
+
             HVI = calculate_HVI(F)
-            print("\nHVI:",HVI,"\n###\n")
+            print("\nHVI:", HVI, "\n###\n")
+            worse = find_worse_result(F, P)
+            criterias_with_results = {
+                "Pareto": F, "Worse": worse, "Range": find_range_of_results(F, worse)}
+
+            prepared_data = prepare_data(F, worse)
+            print(prepared_data)
+            barWidth = 0.25
+            r1 = np.arange(len(prepared_data[0]))
+            r2 = [x + barWidth for x in r1]
+            plt.bar(r1, prepared_data[0], color='#7f6d5f',
+                    width=barWidth, edgecolor='white', label='Kryterium 1')
+            plt.bar(r2, prepared_data[1], color='#557f2d',
+                    width=barWidth, edgecolor='white', label='Kryterium 2')
+            plt.xlabel('Numer rozwiązania', fontweight='bold')
+            plt.xticks([r + barWidth for r in range(len(prepared_data[0]))],
+                       ['Rozw. 1', 'Rozw. 2', 'Rozw. 3', 'Rozw. 4'])
+            plt.legend()
+            plt.show()
+
+
+def prepare_data(F, worse):
+    criterias = []
+    for i in range(len(worse)):
+        single_criteria_results = []
+        for f in F:
+            if(len(single_criteria_results) > 2):
+                break
+            single_criteria_results.append(f[i])
+        single_criteria_results.append(worse[i])
+        criterias.append(single_criteria_results)
+    return criterias
+
+
+def find_range_of_results(F, worse):
+    ranges = []
+    for criteria_no in range(len(worse)):
+        minValue = worse[criteria_no]
+        maxValue = worse[criteria_no]
+        for f in F:
+            if minValue > f[criteria_no]:
+                minValue = f[criteria_no]
+            if maxValue < f[criteria_no]:
+                maxValue = f[criteria_no]
+        ranges.append({"Min": minValue, "Max": maxValue})
+    return ranges
+
+
+def find_worse_result(F, P):
+    print(P, F)
+    for p in P:
+        for f in F:
+            if p[0] > f[0] and p[1] > f[1]:
+                return p
+    return [999999999, 999999999]
+
+
+def do_visualization(criterias_with_results):
+    None
+
 
 do_zadanie1(10, 10)
