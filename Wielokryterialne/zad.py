@@ -170,14 +170,21 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
             HVI = calculate_HVI(F)
             print("\nHVI:", HVI, "\n###\n")
             worse = find_worse_result(F, P)
+            results_range = find_range_of_results(F, worse)
             criterias_with_results = {
-                "Pareto": F, "Worse": worse, "Range": find_range_of_results(F, worse)}
+                "Pareto": F, "Worse": worse, "Range": results_range
+            }
 
             prepared_data = prepare_data(F, worse)
             print(prepared_data)
+
+            prepared_data = normalize_data(prepared_data, results_range)
+
+            # Słupkowy
             barWidth = 0.25
             r1 = np.arange(len(prepared_data[0]))
             r2 = [x + barWidth for x in r1]
+
             plt.bar(r1, prepared_data[0], color='#7f6d5f',
                     width=barWidth, edgecolor='white', label='Kryterium 1')
             plt.bar(r2, prepared_data[1], color='#557f2d',
@@ -187,6 +194,18 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
                        ['Rozw. 1', 'Rozw. 2', 'Rozw. 3', 'Rozw. 4'])
             plt.legend()
             plt.show()
+
+
+def normalize_data(data, data_range):
+    normalized_data = []
+    for i in range(len(data)):
+        normalzied_single_criteria_data = []
+        for single_value in data[i]:
+            norm_value = (
+                single_value-data_range[i]["Min"])/(data_range[i]["Max"]-data_range[i]["Min"])
+            normalzied_single_criteria_data.append(norm_value)
+        normalized_data.append(normalzied_single_criteria_data)
+    return normalized_data
 
 
 def prepare_data(F, worse):
