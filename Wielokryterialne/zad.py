@@ -77,7 +77,7 @@ def all_task_done_time(schedule, n, m, p, d, ktore_kryteria_zwrocic=[2, 3, 4, 5]
 def is_dominated(k_x_prim, k_x):
     betters = 0
     for i in range(len(k_x)):
-        if k_x_prim[i] > k_x[i]:
+        if k_x_prim[i] >= k_x[i]:
             return False
         if k_x_prim[i] < k_x[i]:
             betters += 1
@@ -89,12 +89,32 @@ def is_dominated(k_x_prim, k_x):
 
 def make_Pareto_from_P(P):
     F = P.copy()
-    for a in F:
-        for b in F:
-            if(a != b and is_dominated(b, a)):
-                F.remove(a)
-                break
+    #Z jakiegos powodu jak sie to robi w petli to dziala lepiej xd - ale dalej nie idealnie
+    for i in range (0,10):
+        for a in F:
+            for b in F:
+                if(a != b and is_dominated(b, a)):
+                    F.remove(a)
+                    break
     return F
+
+
+#Sumujemy prostokaty
+def calculate_HVI(F):
+    z1=1.2*max(F[:,0])
+    z2=1.2*max(F[:,1])
+    HVI=0
+
+    #Posortowanie F malejaco w zaleznosci od F[:,0]
+    for i in range(len(F)):
+        if i == 0:
+            x=z1-F[i,0]
+        else:
+            x=F[i-1,0] - F[i,0]
+        y=z2-F[i,1]
+        HVI+=x*y
+
+    return HVI
 
 
 def do_zadanie1(min_tasks=4, max_tasks=10):
@@ -134,10 +154,20 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
                 x = x_prim
                 iters += 1
             F = make_Pareto_from_P(P)
+            print(F)
             F = np.array(F)
-            print(F[:, 0])
-            plt.plot(F[:, 1], F[:, 0], 'o')
+            P = np.array(P)
+            #print(F[:, 0])
+            #print(F[:, 1])
+            #np.sort(F[:,0])
+            #F[F[:,1].argsort()[::-1]]
+            F = F[(-F[:,0]).argsort()]
+            print(F)
+            plt.plot(P[:, 1], P[:, 0], 'bo')
+            plt.plot(F[:, 1], F[:, 0], 'ro-')
             plt.show()
-
+            
+            HVI = calculate_HVI(F)
+            print("\nHVI:",HVI,"\n###\n")
 
 do_zadanie1(10, 10)
