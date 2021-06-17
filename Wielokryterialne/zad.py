@@ -6,6 +6,7 @@ import generator as gen
 import numpy as np
 import random
 from matplotlib import pyplot as plt
+import csv
 
 Z = 4124
 generator = gen.RandomNumberGenerator(Z)
@@ -178,6 +179,12 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
             prepared_data = prepare_data(F, worse)
 
             prepared_data = normalize_data(prepared_data, results_range)
+
+            with open('wyniki/max_%i_iterations.csv' % (max_iterations), 'w') as file:
+                write = csv.writer(file)
+                write.writerow(['Kryterium 1', 'Kryterium 2',
+                                'Kryterium 3', 'Kryterium 4(gorsze)'])
+                write.writerows(prepared_data)
 
             # Słupkowy
             barWidth = 0.25
