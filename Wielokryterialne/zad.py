@@ -138,9 +138,9 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
 
         max_iterations = 10
         HVIs = []
-        results = np.zeros((10,4))
+        results = np.zeros((10, 4))
         for max_iterations in [100, 200, 400, 800, 1600]:
-        #for max_iterations in [200]:
+            # for max_iterations in [200]:
             P = []
             iters = 0
             random.shuffle(initial_schedule)
@@ -195,28 +195,80 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
                        ['Rozw. 1', 'Rozw. 2', 'Rozw. 3', 'Rozw. 4'])
             plt.legend()
             plt.show()
-            print("\nKryterium 1:",prepared_data[0])
+            print("\nKryterium 1:", prepared_data[0])
             print("\nKryterium 2:", prepared_data[1])
 
             if max_iterations == 100:
-                results[0]=prepared_data[0]
-                results[1]=prepared_data[1]
+                results[0] = prepared_data[0]
+                results[1] = prepared_data[1]
             elif max_iterations == 200:
-                results[2]=prepared_data[0]
-                results[3]=prepared_data[1]
+                results[2] = prepared_data[0]
+                results[3] = prepared_data[1]
             elif max_iterations == 400:
-                results[4]=prepared_data[0]
-                results[5]=prepared_data[1]
+                results[4] = prepared_data[0]
+                results[5] = prepared_data[1]
             elif max_iterations == 800:
-                results[6]=prepared_data[0]
-                results[7]=prepared_data[1]
+                results[6] = prepared_data[0]
+                results[7] = prepared_data[1]
             elif max_iterations == 1600:
-                results[8]=prepared_data[0]
-                results[9]=prepared_data[1]
-
+                results[8] = prepared_data[0]
+                results[9] = prepared_data[1]
 
         print("\nHVI:", mean(HVIs), "\n###\n")
         np.savetxt('test.csv', results, delimiter=',', fmt='%s')
+
+
+def do_zadanie2(min_tasks=4, max_tasks=10):
+    m = 3
+    for n in range(min_tasks, max_tasks+1):
+        A = 0
+        # Generacja instancji
+        p = np.zeros((n, m))
+        d = np.zeros((n))
+        initial_schedule = np.zeros(n, dtype=np.int32)
+        for i in range(0, n):
+            initial_schedule[i] = i
+            for j in range(0, m):
+                p[i][j] = generator.nextInt(1, 99)
+                A += p[i][j]
+        B = A//2
+        A = A//6
+        for i in range(0, n):
+            d[j] = generator.nextInt(A, B)
+
+        max_iterations = 10
+        HVIs = []
+        results = np.zeros((10, 4))
+        for max_iterations in [100, 200, 400, 800, 1600]:
+            # for max_iterations in [200]:
+            iters = 0
+            random.shuffle(initial_schedule)
+            X = []
+            x = initial_schedule
+            x_best = count_s(all_task_done_time(x, n, m, p, d, [2, 3, 4]))
+            X.append(x)
+            while iters < max_iterations:
+                j = generator.nextInt(0, len(x)-1)
+                i = generator.nextInt(0, len(x)-1)
+                while j == i:
+                    i = generator.nextInt(0, len(x)-1)
+                x_prim = x.copy()
+                x_prim[i], x_prim[j] = x_prim[j], x_prim[i]
+                s = count_s(all_task_done_time(x, n, m, p, d, [2, 3, 4]))
+                s_prim = count_s(all_task_done_time(
+                    x_prim, n, m, p, d, [2, 3, 4]))
+                if(s_prim < s or random.random() < pow(0.995, iters)):
+                    x = x_prim
+                    x_best = count_s(all_task_done_time(
+                        x, n, m, p, d, [2, 3, 4]))
+                X.append(x)
+                iters += 1
+            print(x, x_best)
+
+
+def count_s(rozw):
+    #print(rozw[0], rozw[1], rozw[2])
+    return rozw[0]+rozw[1]*40+rozw[2]*15
 
 
 def normalize_data(data, data_range):
@@ -270,4 +322,4 @@ def do_visualization(criterias_with_results):
     None
 
 
-do_zadanie1(10, 10)
+do_zadanie2(10, 10)
