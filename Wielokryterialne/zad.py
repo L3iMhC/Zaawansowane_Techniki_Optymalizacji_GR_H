@@ -6,7 +6,6 @@ import generator as gen
 import numpy as np
 import random
 from matplotlib import pyplot as plt
-import csv
 
 Z = 4124
 generator = gen.RandomNumberGenerator(Z)
@@ -139,6 +138,7 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
 
         max_iterations = 10
         HVIs = []
+        results = np.zeros((10,4))
         for max_iterations in [100, 200, 400, 800, 1600]:
             P = []
             iters = 0
@@ -180,12 +180,6 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
 
             prepared_data = normalize_data(prepared_data, results_range)
 
-            with open('wyniki/max_%i_iterations.csv' % (max_iterations), 'w') as file:
-                write = csv.writer(file)
-                write.writerow(['Kryterium 1', 'Kryterium 2',
-                                'Kryterium 3', 'Kryterium 4(gorsze)'])
-                write.writerows(prepared_data)
-
             # Słupkowy
             barWidth = 0.25
             r1 = np.arange(len(prepared_data[0]))
@@ -200,7 +194,28 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
                        ['Rozw. 1', 'Rozw. 2', 'Rozw. 3', 'Rozw. 4'])
             plt.legend()
             plt.show()
+            print("\nKryterium 1:",prepared_data[0])
+            print("\nKryterium 2:", prepared_data[1])
+
+            if max_iterations == 100:
+                results[0]=prepared_data[0]
+                results[1]=prepared_data[1]
+            elif max_iterations == 200:
+                results[2]=prepared_data[0]
+                results[3]=prepared_data[1]
+            elif max_iterations == 400:
+                results[4]=prepared_data[0]
+                results[5]=prepared_data[1]
+            elif max_iterations == 800:
+                results[6]=prepared_data[0]
+                results[7]=prepared_data[1]
+            elif max_iterations == 1600:
+                results[8]=prepared_data[0]
+                results[9]=prepared_data[1]
+
+
         print("\nHVI:", mean(HVIs), "\n###\n")
+        np.savetxt('test.csv', results, delimiter=',', fmt='%s')
 
 
 def normalize_data(data, data_range):
