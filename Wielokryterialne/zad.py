@@ -140,6 +140,7 @@ def do_zadanie1(min_tasks=4, max_tasks=10):
         HVIs = []
         results = np.zeros((10,4))
         for max_iterations in [100, 200, 400, 800, 1600]:
+        #for max_iterations in [200]:
             P = []
             iters = 0
             random.shuffle(initial_schedule)

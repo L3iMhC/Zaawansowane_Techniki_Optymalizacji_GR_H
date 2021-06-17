@@ -108,4 +108,4 @@ def drawFace(c1, c2, c3, c4):
     fig.subplots_adjust(hspace=0, wspace=0)
     plt.savefig('face.png', bbox_inches='tight')
 
-drawFace(0.54691689, 0.006289308,	0.5,	0.5)
+drawFace(0.04587156, 0.328358209,	0.5,	0.5)
